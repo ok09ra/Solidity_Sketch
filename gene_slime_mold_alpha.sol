@@ -12,6 +12,7 @@ contract GeneSlimeMold{
     struct GeneMiner{
         address wallet_address;
         string description;
+        address[] mined_gene_list;
     }
 
     struct UseEventMaker{
@@ -38,26 +39,31 @@ contract GeneSlimeMold{
     GeneMiner[] public gene_miner_list;
     UseEventMaker[] public use_event_maker_list;
     UseEvent[] public use_event_list;
+    
+    address[] empty;
 
     address public supervisor;
-    address public gene_miner;
+
+    address[] public gene_miner = [
+            0x5B38Da6a701c568545dCfcB03FcB875f56beddC4,
+            0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2
+        ];
+
     constructor(){
         supervisor = msg.sender;
-        gene_miner storage = [
-            0x5B38Da6a701c568545dCfcB03FcB875f56beddC4,
-            0x5B38Da6a701c568545dCfcB03FcB875f56beddC4
-        ];
     }
 
     function generate_gene_holder(address holder_address, string memory gene_url) public {
         require(include_address(gene_miner, msg.sender));
 
+
         gene_holder_list.push(GeneHolder(
             holder_address,
             gene_url,
-            [],
-            []
+            empty,
+            empty
         ));
+        
     }
 
     function generate_gene_miner(address miner_address, string memory description) public {
@@ -65,7 +71,8 @@ contract GeneSlimeMold{
 
         gene_miner_list.push(GeneMiner(
             miner_address,
-            description
+            description,
+            empty
         ));
     }
 
@@ -75,14 +82,14 @@ contract GeneSlimeMold{
         use_event_maker_list.push(UseEventMaker(
             event_maker_address,
             description = description,
-            [],
-            []
+            empty,
+            empty
         ));
     }
 
     function include_address(address[] memory address_array, address target_address) private pure returns(bool){
         bool is_include = false;
-        for(int i = 0; i < address_array.length(); i++){
+        for(uint i = 0; i < address_array.length; i++){
             if(address_array[i] == target_address){
                 is_include == true;
                 break;
