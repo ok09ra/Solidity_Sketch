@@ -4,7 +4,7 @@ contract GeneSlimeMold{
     //全てのユーザーが持つユーザー情報
     struct GeneHolder{
         uint[] gene_mining_data_id_list;
-        uint[] approval_id_list;
+        uint[] use_event_id_list;
     }
 
     //限られたユーザーが持つ遺伝子を解析してブロックチェーン上に登録できる権限の情報
@@ -91,7 +91,7 @@ contract GeneSlimeMold{
         use_event_id_to_owner[id] = msg.sender; //use eventとそのオーナーを紐づける。
         use_event_maker_list[msg.sender].use_event_list.push(id); //自分のuse_event_listにidを加える。
 
-        gene_holder_list[offer_to_address].approval_id_list.push(id);//オファーするgene holderにidを送る。
+        gene_holder_list[offer_to_address].use_event_id_list.push(id);//オファーするgene holderにidを送る。
     }
     
     //use eventを承認する。
@@ -133,7 +133,7 @@ contract GeneSlimeMold{
 
 /*情報表示関連*/
     //自分の遺伝子解析情報を取得する。
-    function request_own_gene_mining_data() public view returns(GeneMiningData[] memory){
+    function request_own_gene_mining_data_list() public view returns(GeneMiningData[] memory){
         uint[] memory gene_mining_data_id_list; 
         GeneMiningData[] memory own_gene_mining_data_list;
         gene_mining_data_id_list = gene_holder_list[msg.sender].gene_mining_data_id_list;        
@@ -143,5 +143,18 @@ contract GeneSlimeMold{
         }
 
         return own_gene_mining_data_list;
+    }
+
+    //自分あてのuse eventを取得する。
+    function request_own_use_event_list() public view returns(UseEvent[] memory){
+        uint[] memory use_event_id_list; 
+        UseEvent[] memory own_use_event_list;
+        use_event_id_list = gene_holder_list[msg.sender].use_event_id_list;
+        
+        for(uint i = 0; i < use_event_id_list.length; i++){
+            own_use_event_list[i] = use_event_list[use_event_id_list[i]];
+        }
+
+        return own_use_event_list;
     }
 }
