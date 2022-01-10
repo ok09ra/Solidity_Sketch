@@ -25,7 +25,7 @@ contract GeneSlimeMold{
     struct UseEvent{
         address event_owner_address;
         string description;
-        address offer_to_address;
+        address payable offer_to_address;
         uint pay_amount;
         bool is_approved;
         bool is_blocked;
@@ -82,7 +82,7 @@ contract GeneSlimeMold{
 
 /*遺伝子使用イベント定義関連 */
     //use event maker がuse event を発行する。
-    function generate_use_event(string memory description, address offer_to_address, uint payment) public {
+    function generate_use_event(string memory description, address payable offer_to_address, uint payment) public {
         require(use_event_maker_list[msg.sender].is_available);//実行者がevent makerであるかを確認
         uint id = use_event_list.length;
         
@@ -105,6 +105,22 @@ contract GeneSlimeMold{
         require(use_event_list[use_event_id].offer_to_address == msg.sender);
         use_event_list[use_event_id].is_blocked = true;
         use_event_list[use_event_id].is_approved = false;
+    }
+
+/*利用実行と金銭やり取り関連*/
+
+    //送金するための関数
+    function balance_to(address payable reciever_address, uint pay_amount) public payable{
+        reciever_address.transfer(pay_amount);
+    }
+
+    //use eventを実行する。
+    function execute_use_event(uint use_event_id)public{
+        require(use_event_list[use_event_id].event_owner_address == msg.sender);
+        require(use_event_list[use_event_id].is_approved);
+        require(use_event_list[use_event_id].pay_amount <= address(this).balance);
+        balance_to(use_event_list[use_event_id].offer_to_address, use_event_list[use_event_id].pay_amount);
+        use_event_list[use_event_id].is_executed = true;
     }
 
 /*遺伝情報の定義情報*/
@@ -183,4 +199,5 @@ contract GeneSlimeMold{
 
         return own_use_event_list;
     }
+
 }
