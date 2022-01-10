@@ -133,9 +133,9 @@ contract GeneSlimeMold{
 
 /*情報表示関連*/
     //自分の遺伝子解析情報を取得する。
-    function request_own_gene_mining_data() public returns(GeneMiningData[]){
+    function request_own_gene_mining_data() public view returns(GeneMiningData[] memory){
         uint[] memory gene_mining_data_id_list; 
-        GeneMiningData[] memory own_gene_mining_data_list
+        GeneMiningData[] memory own_gene_mining_data_list;
         gene_mining_data_id_list = gene_holder_list[msg.sender].gene_mining_data_id_list;        
         
         for(uint i = 0; i < gene_mining_data_id_list.length; i++){
