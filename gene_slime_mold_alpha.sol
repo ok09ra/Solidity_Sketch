@@ -102,4 +102,11 @@ contract GeneSlimeMold{
         use_event_list[use_event_id].is_blocked = true;
     }
 
+/*遺伝情報の定義情報*/
+    //解析情報を追加する
+    function register_mining_gene(address gene_holder_address, string memory gene_url) public {
+        require(gene_miner_list[msg.sender].is_available);
+
+        gene_holder_list[gene_holder_address].gene_url_list.push(gene_url);
+    }
 }
