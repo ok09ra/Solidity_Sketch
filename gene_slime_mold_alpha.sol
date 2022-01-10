@@ -10,7 +10,7 @@ contract GeneSlimeMold{
     //限られたユーザーが持つ遺伝子を解析してブロックチェーン上に登録できる権限の情報
     struct GeneMiner{
         string description;
-        address[] mined_gene_list;
+        uint[] mined_gene_mining_data_id_list;
         bool is_available;
     }
 
@@ -18,7 +18,6 @@ contract GeneSlimeMold{
     struct UseEventMaker{
         string description;
         uint[] use_event_list;
-        address[] avilable_use_event_list;
         bool is_available;
     }
 
@@ -115,6 +114,7 @@ contract GeneSlimeMold{
         uint id = gene_mining_data_list.length;
         gene_mining_data_list.push(GeneMiningData(gene_url, description, gene_holder_address, msg.sender, false, false));
         gene_holder_list[gene_holder_address].gene_mining_data_id_list.push(id);
+        gene_miner_list[msg.sender].mined_gene_mining_data_id_list.push(id);
     }
     
     //本人がその解析情報を承認する。
@@ -157,4 +157,18 @@ contract GeneSlimeMold{
 
         return own_use_event_list;
     }
+
+    //自分が解析したデータの一覧を取得する。
+    function request_own_mined_gene_mining_data_list() public view returns(GeneMiningData[] memory){
+        uint[] memory mined_gene_mining_data_id_list; 
+        GeneMiningData[] memory own_mined_gene_mining_data_list;
+        mined_gene_mining_data_id_list = gene_miner_list[msg.sender].mined_gene_mining_data_id_list;
+        
+        for(uint i = 0; i < mined_gene_mining_data_id_list.length; i++){
+            own_mined_gene_mining_data_list[i] = gene_mining_data_list[mined_gene_mining_data_id_list[i]];
+        }
+
+        return own_mined_gene_mining_data_list;
+    }
+
 }
