@@ -130,4 +130,18 @@ contract GeneSlimeMold{
         gene_mining_data_list[gene_mining_data_id].is_accepted_by_holder = false;
         gene_mining_data_list[gene_mining_data_id].is_blocked_by_holder = true;
     }
+
+/*情報表示関連*/
+    //自分の遺伝子解析情報を取得する。
+    function request_own_gene_mining_data() public returns(GeneMiningData[]){
+        uint[] memory gene_mining_data_id_list; 
+        GeneMiningData[] memory own_gene_mining_data_list
+        gene_mining_data_id_list = gene_holder_list[msg.sender].gene_mining_data_id_list;        
+        
+        for(uint i = 0; i < gene_mining_data_id_list.length; i++){
+            own_gene_mining_data_list[i] = gene_mining_data_list[gene_mining_data_id_list[i]];
+        }
+
+        return own_gene_mining_data_list;
+    }
 }
