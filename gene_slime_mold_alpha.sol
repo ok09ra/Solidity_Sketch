@@ -3,10 +3,10 @@ pragma solidity ^0.8.4;
 contract GeneSlimeMold{
     //全てのユーザーが持つユーザー情報
     struct GeneHolder{
-        string[] gene_url_list;
+        uint[] gene_mining_data_id_list;
         uint[] approval_id_list;
-        address[] block_user_list;
     }
+
     //限られたユーザーが持つ遺伝子を解析してブロックチェーン上に登録できる権限の情報
     struct GeneMiner{
         string description;
@@ -32,22 +32,26 @@ contract GeneSlimeMold{
         bool is_blocked;
         bool is_executed;
     }
-
-    struct Offering{
-        address offring_to_address;
-        uint pay_amount;
-    }
     
+    struct GeneMiningData{
+        string url;
+        string description;
+        address gene_holder_address;
+        address miner_address;
+        bool is_accepted_by_holder;
+        bool is_blocked_by_holder;
+    }
 
     mapping(address => GeneHolder) private gene_holder_list; //ユーザーと遺伝子保持情報を紐づけ
     mapping(address => GeneMiner) private gene_miner_list; //ユーザーと遺伝子マイニング情報を紐づけ
     mapping(address => UseEventMaker) private use_event_maker_list; //ユーザーと遺伝子使用イベントを紐づけ
-    UseEvent[] public use_event_list;
     mapping(uint => address) public use_event_id_to_owner; //遺伝子使用イベントにidを振る
+
+    UseEvent[] public use_event_list;
+    GeneMiningData[] public gene_mining_data_list;
 
     address[] empty; //空配列
     address public supervisor; //コントラクトのオーナー
-    uint use_event_id = 0; //遺伝子使用イベントId
 
     constructor(){
         supervisor = msg.sender; //コントラクトがデプロイされたときのオーナーをスーパーバイザーとする。
@@ -77,7 +81,7 @@ contract GeneSlimeMold{
         use_event_maker_list[use_event_maker_address].is_available = false; 
     }
 
-/*遺伝子使用イベント関連 */
+/*遺伝子使用イベント定義関連 */
     //use event maker がuse event を発行する。
     function generate_use_event(string memory description, address offer_to_address, uint payment) public {
         require(use_event_maker_list[msg.sender].is_available);//実行者がevent makerであるかを確認
@@ -88,25 +92,42 @@ contract GeneSlimeMold{
         use_event_maker_list[msg.sender].use_event_list.push(id); //自分のuse_event_listにidを加える。
 
         gene_holder_list[offer_to_address].approval_id_list.push(id);//オファーするgene holderにidを送る。
-
     }
     
     //use eventを承認する。
     function approve_use_event_offer(uint use_event_id) public{
         require(use_event_list[use_event_id].offer_to_address == msg.sender);
         use_event_list[use_event_id].is_approved = true;
+        use_event_list[use_event_id].is_blocked = false;
     }
-    //use eventを棄却。
+
+    //use eventを棄却する。
     function block_use_event_offer(uint use_event_id) public{
         require(use_event_list[use_event_id].offer_to_address == msg.sender);
         use_event_list[use_event_id].is_blocked = true;
+        use_event_list[use_event_id].is_approved = false;
     }
 
 /*遺伝情報の定義情報*/
     //解析情報を追加する
-    function register_mining_gene(address gene_holder_address, string memory gene_url) public {
+    function register_mining_gene(address gene_holder_address, string memory gene_url, string memory description) public {
         require(gene_miner_list[msg.sender].is_available);
+        uint id = gene_mining_data_list.length;
+        gene_mining_data_list.push(GeneMiningData(gene_url, description, gene_holder_address, msg.sender, false, false));
+        gene_holder_list[gene_holder_address].gene_mining_data_id_list.push(id);
+    }
+    
+    //本人がその解析情報を承認する。
+    function accept_mining_gene(uint gene_mining_data_id) public {
+        require(gene_mining_data_list[gene_mining_data_id].gene_holder_address == msg.sender);
+        gene_mining_data_list[gene_mining_data_id].is_blocked_by_holder = false;
+        gene_mining_data_list[gene_mining_data_id].is_accepted_by_holder = true;
+    }
 
-        gene_holder_list[gene_holder_address].gene_url_list.push(gene_url);
+    //本人がその解析情報を棄却する。
+    function blocked_mining_gene(uint gene_mining_data_id) public {
+        require(gene_mining_data_list[gene_mining_data_id].gene_holder_address == msg.sender);
+        gene_mining_data_list[gene_mining_data_id].is_accepted_by_holder = false;
+        gene_mining_data_list[gene_mining_data_id].is_blocked_by_holder = true;
     }
 }
