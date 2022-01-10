@@ -4,7 +4,7 @@ contract GeneSlimeMold{
     //全てのユーザーが持つユーザー情報
     struct GeneHolder{
         string[] gene_url_list;
-        address[] approval_id_list;
+        uint[] approval_id_list;
         address[] block_user_list;
     }
     //限られたユーザーが持つ遺伝子を解析してブロックチェーン上に登録できる権限の情報
@@ -26,7 +26,8 @@ contract GeneSlimeMold{
     struct UseEvent{
         address event_owner_address;
         string description;
-        Offering offering;
+        address offer_to_address;
+        uint pay_amount;
         bool is_approved;
         bool is_blocked;
         bool is_executed;
@@ -38,9 +39,9 @@ contract GeneSlimeMold{
     }
     
 
-    mapping(address => GeneHolder) public gene_holder_list; //ユーザーと遺伝子保持情報を紐づけ
-    mapping(address => GeneMiner) public gene_miner_list; //ユーザーと遺伝子マイニング情報を紐づけ
-    mapping(address => UseEventMaker) public use_event_maker_list; //ユーザーと遺伝子使用イベントを紐づけ
+    mapping(address => GeneHolder) private gene_holder_list; //ユーザーと遺伝子保持情報を紐づけ
+    mapping(address => GeneMiner) private gene_miner_list; //ユーザーと遺伝子マイニング情報を紐づけ
+    mapping(address => UseEventMaker) private use_event_maker_list; //ユーザーと遺伝子使用イベントを紐づけ
     UseEvent[] public use_event_list;
     mapping(uint => address) public use_event_id_to_owner; //遺伝子使用イベントにidを振る
 
@@ -78,31 +79,27 @@ contract GeneSlimeMold{
 
 /*遺伝子使用イベント関連 */
     //use event maker がuse event を発行する。
-    function generate_use_event(string memory description, Offering offering) public{
-        require(use_event_maker_list[msg.sender]);//実行者がevent makerであるかを確認
-
-        uint id = use_event_list.push(UseEvent(msg.sender, description, offering, false, false, false)); // use_event_listに定義したuse eventを入力して、その配列の番号をidとして保持
+    function generate_use_event(string memory description, address offer_to_address, uint payment) public {
+        require(use_event_maker_list[msg.sender].is_available);//実行者がevent makerであるかを確認
+        uint id = use_event_list.length;
+        
+        use_event_list.push(UseEvent(msg.sender, description, offer_to_address, payment, false, false, false)); // use_event_listに定義したuse eventを入力して、その配列の番号をidとして保持
         use_event_id_to_owner[id] = msg.sender; //use eventとそのオーナーを紐づける。
         use_event_maker_list[msg.sender].use_event_list.push(id); //自分のuse_event_listにidを加える。
 
-        gene_holder_list[offering.offering_to_address].approval_id_list.push(id);//オファーするgene holderにidを送る。
+        gene_holder_list[offer_to_address].approval_id_list.push(id);//オファーするgene holderにidを送る。
 
     }
     
     //use eventを承認する。
     function approve_use_event_offer(uint use_event_id) public{
-        require(use_event_list[use_event_id].offering.offering_to_address == msg.sender);
+        require(use_event_list[use_event_id].offer_to_address == msg.sender);
         use_event_list[use_event_id].is_approved = true;
     }
-        //use eventを承認する。
+    //use eventを棄却。
     function block_use_event_offer(uint use_event_id) public{
-        require(use_event_list[use_event_id].offering.offering_to_address == msg.sender);
+        require(use_event_list[use_event_id].offer_to_address == msg.sender);
         use_event_list[use_event_id].is_blocked = true;
-    }
-    
-    function block_use_event_offer(uint use_event_id) public{
-        require(use_event_list[use_event_id].event_owner_address == msg.sender);
-        use_event_list[use_event_id].is_executed = true;
     }
 
 }
