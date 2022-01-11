@@ -9,14 +9,12 @@ contract GeneSlimeMold{
 
     //限られたユーザーが持つ遺伝子を解析してブロックチェーン上に登録できる権限の情報
     struct GeneMiner{
-        string description;
         uint[] mined_gene_mining_data_id_list;
         bool is_available;
     }
 
     //限られたユーザーが持つ遺伝子を使用するイベントを発行できる権限の情報
     struct UseEventMaker{
-        string description;
         uint[] use_event_id_list;
         bool is_available;
     }
@@ -44,8 +42,8 @@ contract GeneSlimeMold{
     mapping(address => GeneHolder) private gene_holder_list; //ユーザーと遺伝子保持情報を紐づけ
     mapping(address => GeneMiner) private gene_miner_list; //ユーザーと遺伝子マイニング情報を紐づけ
     mapping(address => UseEventMaker) private use_event_maker_list; //ユーザーと遺伝子使用イベントを紐づけ
-    mapping(uint => address) public use_event_id_to_owner; //遺伝子使用イベントにidを振る
 
+    address[] public use_event_id_to_owner;//遺伝子使用イベントにidを振る
     UseEvent[] public use_event_list; //use eventのリスト
     GeneMiningData[] public gene_mining_data_list; //解析結果のデータのリスト
 
@@ -56,10 +54,10 @@ contract GeneSlimeMold{
         supervisor = msg.sender; //コントラクトがデプロイされたときのオーナーをスーパーバイザーとする。
     }
 
+
 /*アカウント定義　gene miner*/
-    function generate_gene_miner(address miner_address, string memory description) public {
+    function generate_gene_miner(address miner_address) public {
         require(supervisor == msg.sender);//ひとまずはスーパーバイザーだけが遺伝子解析事業者を操作できる様にしておく。今後は多数決で決められればいいと思っている。
-        gene_miner_list[miner_address].description = description;
         gene_miner_list[miner_address].is_available = true;
     }
 
@@ -69,9 +67,8 @@ contract GeneSlimeMold{
     }
 
 /*アカウント定義 use event maker */
-    function generate_use_event_maker(address use_event_maker_address, string memory description) public {
+    function generate_use_event_maker(address use_event_maker_address) public {
         require(supervisor == msg.sender);//ひとまずはスーパーバイザーだけが遺伝子解析事業者を操作できる様にしておく。今後は多数決で決められればいいと思っている。
-        use_event_maker_list[use_event_maker_address].description = description;
         use_event_maker_list[use_event_maker_address].is_available = true;
     }
 
