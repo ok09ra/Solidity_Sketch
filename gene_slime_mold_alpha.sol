@@ -5,6 +5,7 @@ contract GeneSlimeMold{
     struct GeneHolder{
         uint[] gene_mining_data_id_list;
         uint[] use_event_id_list;
+        mapping(address => bool)block_address_list;
     }
 
     //限られたユーザーが持つ遺伝子を解析してブロックチェーン上に登録できる権限の情報
@@ -54,6 +55,15 @@ contract GeneSlimeMold{
         supervisor = msg.sender; //コントラクトがデプロイされたときのオーナーをスーパーバイザーとする。
     }
 
+/*アカウント定義　gene holder*/
+    //ブロックリストに人を追加する。
+    function add_block_list(address block_address) public{
+        gene_holder_list[msg.sender].block_address_list[block_address] = true;
+    }
+
+    function remove_block_list(address block_address) public{
+        gene_holder_list[msg.sender].block_address_list[block_address] = false;
+    }
 
 /*アカウント定義　gene miner*/
     function generate_gene_miner(address miner_address) public {
@@ -81,6 +91,7 @@ contract GeneSlimeMold{
     //use event maker がuse event を発行する。
     function generate_use_event(string memory description, address payable offer_to_address, uint payment) public {
         require(use_event_maker_list[msg.sender].is_available);//実行者がevent makerであるかを確認
+        require(gene_holder_list[offer_to_address].block_address_list[msg.sender] == false);//ブロックリストに含まれていないか
         uint id = use_event_list.length;
         
         use_event_list.push(UseEvent(msg.sender, description, offer_to_address, payment, false, false, false)); // use_event_listに定義したuse eventを入力して、その配列の番号をidとして保持
@@ -124,6 +135,7 @@ contract GeneSlimeMold{
     //解析情報を追加する
     function register_mining_gene(address gene_holder_address, string memory gene_url, string memory description) public {
         require(gene_miner_list[msg.sender].is_available);
+        require(gene_holder_list[gene_holder_address].block_address_list[msg.sender] == false);//ブロックリストに含まれていないか
         uint id = gene_mining_data_list.length;
         gene_mining_data_list.push(GeneMiningData(gene_url, description, gene_holder_address, msg.sender, false, false));
         gene_holder_list[gene_holder_address].gene_mining_data_id_list.push(id);
